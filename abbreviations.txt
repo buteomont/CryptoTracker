@@ -1,0 +1,444 @@
+1INCH
+AAVE
+ACT - Achain
+ADA
+ADA - Cardano
+ADT - adToken
+ADX - AdEx
+AE - Aeternity
+AED
+AFN
+AGRS - Agoras Tokens
+AION - Aion
+ALGO
+ALL
+AMB - Ambrosus
+AMD
+ANG
+ANKR
+ANT - Aragon
+AOA
+APPC - APPCoins</p>
+ARDR - Ardor
+ARK - Ark
+ARS
+AST - AirSwap
+ATM - ATMChain
+ATOM
+AUD
+AUR - Auroracoin
+AWG
+AZN
+BAL
+BAM
+BAND
+BAT
+BAT - Basic Attent.
+BAY - BitBay
+BBD
+BCC - BitConnect
+BCC - BitConnect (inactive)
+BCH
+BCH - Bitcoin Cash
+BCN - Bytecoin
+BCO - BridgeCoin
+BDT
+BGN
+BHD
+BIF
+BIX - Bibox Token
+BLOCK - Blocknet
+BMD
+BNB - Binance Coin
+BND
+BNT
+BNT - Bancor
+BOB
+BRD - Bread</p>
+BRL
+BSD
+BSV
+BTC
+BTC - Bitcoin
+BTC - bitcoin
+BTC or XBT - Bitcoin
+BTCD - Bitcoin Dark
+BTG - Bitcoin Gold
+BTM - Bytom
+BTN
+BTS - BitShares
+BTX - Bitcore
+BWP
+BYN
+BYR
+BZD
+CAD
+CDF
+CDT - CoinDash
+CGLD
+CHF
+CLF
+CLOAK - CloakCoin
+CLP
+CMT - CyberMiles
+CND - Cindicator
+CNH
+CNX - Crytonex
+CNY
+COB - Cobinhood
+COMP
+COP
+CRC
+CRV
+CTR - Centra
+CUC
+CVC
+CVC - Civic
+CVE
+CZK
+DAI
+DASH
+DASH - Dash
+DATA - Streamr DATA
+DBC - DeepBrain
+DCN - Dentacoin
+DCR - Decred
+DCT - DECENT
+DENT - dent
+DEW - DEW
+DGB - DigiByte
+DGD - DigiDAO
+DJF
+DKK
+DNT
+DNT - district0x
+DOGE - Dogecoin
+DOGE or XDG - Dogecoin
+DOP
+DRGN - Dragonchain
+DTR - Dynamic Trading
+DZD
+ECA - Electra
+ECC - ECC
+EDG - Edgeless
+EGP
+ELF - aelf
+EMC - Emercoin
+EMC2 - Einsteinium
+ENG - Enigma
+ENJ
+ENJ - Enjin Coin
+EOS
+EOS - EOS
+EOS - EOS.IO
+ERN
+ETB
+ETC
+ETC - Ethereum Classic
+ETH
+ETH - Ether (also known as Ether
+ETH - Ethereum
+ETH - ethereum
+ETH2
+ETHOS - Ethos
+ETN - Electroneum
+ETP - MetaverseETP
+EUR
+FCT - Factom
+FIL
+FJD
+FKP
+FORTH
+FUEL - Etherparty</p>
+FUN - Funfair
+GAME - GameCredits
+GAS - Gas
+GBP
+GBX
+GBYTE - Byteball Bytes
+GEL
+GGP
+GHS
+GIP
+GMD
+GNF
+GNO - Gnosis
+GNT - Golem
+GRC - Gridcoin
+GRT
+GTQ
+GXS - GXShares
+GYD
+HKD
+HNL
+HPB - High Performance
+HRK
+HSR - Hshare
+HTG
+HTML - HTMLCOIN
+HUF
+ICN - Iconomi
+ICX - ICON
+IDR
+ILS
+IMP
+INR
+INS - INS Ecosystem
+INT - Internet Nod
+ION - ION
+IOST - IOStoken
+IQD
+ISK
+ITC - IoT Chain
+JEP
+JMD
+JOD
+JPY
+KCS - KuCoin Shares
+KES
+KGS
+KHR
+KIN - Kin
+KMD - Komodo
+KMF
+KNC
+KNC - Kyber Network
+KOI or COYE - Coinye (inactive)
+KRW
+KWD
+KYD
+KZT
+LAK
+LBC - LBRY Credits
+LBP
+LEND - ETHLend
+LINK
+LINK - ChainLink
+LKR
+LRC
+LRC - Loopring
+LRD
+LSK - Lisk
+LSL
+LTC
+LTC - Litecoin
+LTC - litecoin
+LYD
+MAD
+MAID - MaidSafeCoin
+MANA
+MANA - Decentraland
+MATIC
+MCO - Monaco
+MDL
+MDS - MediShares
+MED - MediBloc
+MGA
+MIOTA - IOTA
+MKD
+MKR
+MKR - Maker
+MLN - Melon
+MMK
+MNT
+MOD - Modum
+MONA - MonaCoin
+MOP
+MRO
+MTL
+MTL - Metal
+MUR
+MVR
+MWK
+MXN
+MYR
+MZC - MazaCoin
+MZC - Mazacoin
+MZN
+NAD
+Nano - Nano
+NanoNano
+NAS - Nebulas
+NAV - NAV Coin
+NEBL - Neblio
+NEO - NEO
+NEO - Neo
+NGN
+NIO
+NKN
+NLG - Gulden<br />
+NMC - Namecoin
+NMR
+NOK
+NPR
+NU
+NULS - Nuls
+NXS - Nexus
+Nxt - NXT
+NXT - Nxt
+NZD
+OGN
+OMG
+OMG - OmiseGO
+OMR
+OST - Simple Token
+OXT
+PAB
+PAC - PACcoin
+PART - Particl
+PAY - Tenx
+PAY - TenxX
+PEN
+PGK
+PHP
+PIVX - PIVX
+PKR
+PLN
+PLR - Pillar
+POE - Po.et
+POT - PotCoin
+POWR - Power Ledger
+PPC - Peercoin
+PPP - PayPie
+PPT - Populous
+PRL - Oyster
+PYG
+QAR
+QASH - QASH
+QLC - QLINK
+QRL - Quantum Resi…
+QSP - Quanstamp
+QTUM - Qtum
+R - Revain
+RCN - Ripio Credit Network
+RDD - ReddCoin
+RDN - Raiden Network
+REN
+REP
+REP - Augur
+REQ - Request Network
+RHOC - RChain
+RISE - Rise
+RLC - iExec RLC
+RON
+RPX - Red Pulse
+RSD
+RUB
+RWF
+SALT - SALT
+SAN - Santiment Network
+SAR
+SBD
+SC - Siacoin
+SCR
+SEK
+SGD
+SHP
+SKL
+SKY - Skycoin
+SLL
+SMART - SmartCash
+SNGLS - SingularDTV
+SNM - SONM
+SNT - Status
+SNX
+SOS
+SPANK - SpankChain
+SPHTX - SophiaTX
+SRD
+SRN - SIRIN LABS
+SSP
+STD
+STEEM - Steem
+STORJ
+STORJ - Storj
+STRAT - Stratis
+SUB - Substratum
+SUSHI
+SVC
+SYS - Syscoin
+SZL
+TEL - Telcoin
+THB
+THETA - Theta Token
+TIT - Titcoin
+TJS
+TMT
+TNB - Time New Bank
+TNC - Trinity Network
+TND
+TNT - Tierion
+TOP
+TRX - Tron
+TRY
+TTD
+TWD
+TZS
+UAH
+UBQ - Ubiq
+UGX
+UKG - Unikoin Gold
+UMA
+UNI
+UNITY - SuperNET
+USD
+USDC
+USDC - USD Coin (stablecoin)
+USDT - Tether
+UTK - UTRUST
+UYU
+UZS
+VEE - BLOCKv
+VEN - VeChain
+VERI - Veritaseum
+VES
+VIA - Viacoin
+VIBE - VIBE
+VND
+VTC - Vertcoin
+VUV
+WABI - WaBi
+WAVES - Waves
+WAX - WAX
+WBTC
+WGR - Wagerr
+WINGS - Wings
+WST
+WTC - Walton
+XAF
+XAG
+XAS - Asch
+XAU
+XBY - XTRABYTES
+XCD
+XCP - Counterparty
+XDN - DigitalNote
+XDR
+XEM - NEM
+XLM
+XLM - Stellar
+XMR - Monero
+XOF
+XP - Experience P
+XPA - XPlay
+XPD
+XPF
+XPM - Primecoin
+XPT
+XRB - RaiBlocks
+XRP - Ripple
+XRP - Ripple[21][22]
+XTZ
+XVG - Verge
+XZC - ZCoin
+YER
+YFI
+ZAR
+ZCL - ZClassic
+ZEC
+ZEC - Zcash
+ZEN - ZenCash
+ZMW
+ZRX
+ZRX - 0x
+ZWL
