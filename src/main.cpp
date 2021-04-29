@@ -254,55 +254,6 @@ OLED display=OLED(SDA,SCL,NO_RESET_PIN,0x3C,128,32,true);
 WiFiClientSecure wifiClient;
 HTTPClient http;
 
-// static const uint8_t upArrow[] PROGMEM =
-//   {
-//   0xfe, 0xfe, 0xfe, 0x7e, 0xfe, 0x3e, 0xfe, 0x1e, 0x00,
-//   0x0e, 0x00, 0x06, 0x00, 0x02, 0x00, 0x06, 0x00, 0x0e,
-//   0xfe, 0x1e, 0xfe, 0x3e, 0xfe, 0x7e, 0xfe, 0xfe
-//   };
-// static const uint8_t downArrow[] PROGMEM =
-//   {
-//   0xfe, 0xfe, 0xfc, 0xfe, 0xf8, 0xfe, 0xf0, 0xfe, 0xe0,
-//   0x00, 0xc0, 0x00, 0x80, 0x00, 0xc0, 0x00, 0xe0, 0x00,
-//   0xf0, 0xfe, 0xf8, 0xfe, 0xfc, 0xfe, 0xfe, 0xfe
-//   };
-static const uint8_t upArrow[] PROGMEM =
-  {
-  0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80,
-  0x00, 0x00, 0x00, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x00, 0x00, 0x00, 0x00
-
-  };
-static const uint8_t downArrow[] PROGMEM =
-  {
-  0x00, 0x00, 0x00, 0x00, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0x00, 0x00, 0x00, 0x00,
-  0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01
-  };
-
-const char* allCoins[] PROGMEM =
-	{"1INCH", "AAVE", "ADA", "AED", "AFN", "ALGO", "ALL", "AMD", "ANG", "ANKR",
-	"AOA", "ARS", "ATOM", "AUD", "AWG", "AZN", "BAL", "BAM", "BAND", "BAT",
-	"BBD", "BCH", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BNT", "BOB",
-	"BRL", "BSD", "BSV", "BTC", "BTN", "BWP", "BYN", "BYR", "BZD", "CAD",
-	"CDF", "CGLD", "CHF", "CLF", "CLP", "CNH", "CNY", "COMP", "COP", "CRC",
-	"CRV", "CUC", "CVC", "CVE", "CZK", "DAI", "DASH", "DJF", "DKK", "DNT",
-	"DOP", "DZD", "EGP", "ENJ", "EOS", "ERN", "ETB", "ETC", "ETH", "ETH2",
-	"EUR", "FIL", "FJD", "FKP", "FORTH", "GBP", "GBX", "GEL", "GGP", "GHS",
-	"GIP", "GMD", "GNF", "GRT", "GTQ", "GYD", "HKD", "HNL", "HRK", "HTG",
-	"HUF", "IDR", "ILS", "IMP", "INR", "IQD", "ISK", "JEP", "JMD", "JOD",
-	"JPY", "KES", "KGS", "KHR", "KMF", "KNC", "KRW", "KWD", "KYD", "KZT",
-	"LAK", "LBP", "LINK", "LKR", "LRC", "LRD", "LSL", "LTC", "LYD", "MAD",
-	"MANA", "MATIC", "MDL", "MGA", "MKD", "MKR", "MMK", "MNT", "MOP", "MRO",
-	"MTL", "MUR", "MVR", "MWK", "MXN", "MYR", "MZN", "NAD", "NGN", "NIO",
-	"NKN", "NMR", "NOK", "NPR", "NU", "NZD", "OGN", "OMG", "OMR", "OXT",
-	"PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "REN", "REP",
-	"RON", "RSD", "RUB", "RWF", "SAR", "SBD", "SCR", "SEK", "SGD", "SHP",
-	"SKL", "SLL", "SNX", "SOS", "SRD", "SSP", "STD", "STORJ", "SUSHI", "SVC",
-	"SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS",
-	"UAH", "UGX", "UMA", "UNI", "USD", "USDC", "UYU", "UZS", "VES", "VND",
-	"VUV", "WBTC", "WST", "XAF", "XAG", "XAU", "XCD", "XDR", "XLM", "XOF",
-	"XPD", "XPF", "XPT", "XTZ", "YER", "YFI", "ZAR", "ZEC", "ZMW", "ZRX",
-	"ZWL"};
-
 // These are the settings that get stored in EEPROM.  They are all in one struct which
 // makes it easier to store and retrieve.
 typedef struct 
@@ -311,6 +262,7 @@ typedef struct
   char ssid[SSID_SIZE] = "";
   char wifiPassword[PASSWORD_SIZE] = "";
   unsigned int scrollDelay=3; //seconds to pause scrolling for each crypto
+  char myCoins[250]={}; //the coins that I'm interested in
   boolean debug=false;
   } conf;
 
@@ -338,10 +290,12 @@ char* name2=tickers[1];
 float price1=prices[0];
 float price2=prices[1];
 
-void fixup(char* rawString, char* coin)
+char webBuffer[20000];
+
+char* fixup(char* rawString, const char* field, const char* value)
   {
   String rs=String(rawString);
-  rs.replace("{crypto}",String(coin));
+  rs.replace(field,String(value));
   strcpy(rawString,rs.c_str());
   }
 
@@ -429,7 +383,7 @@ float fetchPrice(char* coin)
 
     //insert the coin ticker symbol into the URL
     strcpy(properURL,CRYPTO_URL);
-    fixup(properURL,coin);
+    fixup(properURL,"{crypto}",coin);
     String url=String(properURL);
 
     if (settings.debug)
@@ -520,12 +474,12 @@ void setup()
     Serial.println(F("Loading settings"));
   loadSettings(); //set the values from eeprom
 
-  if (settingsAreValid) 
-    {
+  // if (settingsAreValid) 
+  //   {
     if (settings.debug)
       Serial.println(F("Connecting to WiFi"));
     if (!connectToWiFi()); //connect to the wifi
-    }
+//    }
   display.display();
   }
 
@@ -546,7 +500,69 @@ void loop()
     }
   checkForCommand(); // Check for input in case something needs to be changed to work
   }
+
+void processSettings(AsyncWebServerRequest* request)
+  {
+  Serial.println("Listing post data");
+  for (int i=0;i<request->params();i++)
+    {
+    Serial.println(request->getParam(i)->name());
+    }
+//  if (request.hasParam())
   
+  }
+
+
+
+char* buildSettingsPage()
+  {
+  char temp[150];
+
+  strcpy_P(webBuffer,settingsPart1);
+
+  strcpy_P(temp,ssidString);
+  fixup(temp,"{ssid}",settings.ssid);
+  strcat(webBuffer,temp);
+  strcat_P(webBuffer,newRowString);
+
+  strcpy_P(temp,passwordString);
+  fixup(temp,"{wifiPassword}",settings.wifiPassword);
+  strcat(webBuffer,temp);
+  strcat_P(webBuffer,newRowString);
+
+  //add the scroll delay
+  strcat_P(webBuffer,settingsPart2);
+  //these are the scroll delay options
+  for (unsigned int i=3;i<13;i++)
+    {
+    strcpy_P(temp,scrollDelayOptionString);
+    char num[3];
+    char sel[9]=" ";
+    if (i==settings.scrollDelay)
+      strcpy(sel,"selected");
+    fixup(temp,"{optNum}",itoa(i,num,10));
+    fixup(temp,"{selected}",sel);
+    strcat(webBuffer,temp);
+    }
+
+  //this is the currency 
+  strcat_P(webBuffer,settingsPart3);
+  //and the individual coin names
+  unsigned int coinCount=sizeof(allCoins)/sizeof(allCoins[0]);
+  for (unsigned int i=0;i<coinCount;i++)
+    {
+    if (i>0 && i%6==0)
+      strcat_P(webBuffer,newRowString);
+    strcpy_P(temp,checkboxString);
+    fixup(temp,"{coin}",allCoins[i]);
+    strcat(webBuffer,temp);
+    }
+
+  strcat_P(webBuffer,settingsPartEnd);
+   
+  return webBuffer;
+  }
+
 /*
  * If not connected to wifi, connect.
  */
@@ -615,13 +631,16 @@ boolean connectToWiFi()
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
       {
-      request->send(200, "text/html", settingsPage);
+      request->send_P(200, "text/html", buildSettingsPage());
       });
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    server.on("/set", HTTP_POST, [](AsyncWebServerRequest *request)
       {
-      request->send(200, "text/html", settingsPage);
+      Serial.println("Processing POST");
+      processSettings(request);
+      request->send_P(200, "text/html", buildSettingsPage());
       });
   
+    ESP.wdtFeed();
     server.begin();
     }
   return retval;

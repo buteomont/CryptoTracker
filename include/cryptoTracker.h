@@ -16,22 +16,42 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32
 
-// Error codes copied from the MQTT library
-// #define MQTT_CONNECTION_REFUSED            -2
-// #define MQTT_CONNECTION_TIMEOUT            -1
-// #define MQTT_SUCCESS                        0
-// #define MQTT_UNACCEPTABLE_PROTOCOL_VERSION  1
-// #define MQTT_IDENTIFIER_REJECTED            2
-// #define MQTT_SERVER_UNAVAILABLE             3
-// #define MQTT_BAD_USER_NAME_OR_PASSWORD      4
-// #define MQTT_NOT_AUTHORIZED                 5
+static const uint8_t upArrow[] PROGMEM =
+  {
+  0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80,
+  0x00, 0x00, 0x00, 0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x00, 0x00, 0x00, 0x00
 
-//WiFi status codes
-//0 : WL_IDLE_STATUS when Wi-Fi is in process of changing between statuses
-//1 : WL_NO_SSID_AVAILin case configured SSID cannot be reached
-//3 : WL_CONNECTED after successful connection is established
-//4 : WL_CONNECT_FAILED if password is incorrect
-//6 : WL_DISCONNECTED if module is not configured in station mode
+  };
+static const uint8_t downArrow[] PROGMEM =
+  {
+  0x00, 0x00, 0x00, 0x00, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0x00, 0x00, 0x00, 0x00,
+  0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01
+  };
+
+const char* const allCoins[] PROGMEM =
+	{"1INCH", "AAVE", "ADA", "AED", "AFN", "ALGO", "ALL", "AMD", "ANG", "ANKR",
+	"AOA", "ARS", "ATOM", "AUD", "AWG", "AZN", "BAL", "BAM", "BAND", "BAT",
+	"BBD", "BCH", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BNT", "BOB",
+	"BRL", "BSD", "BSV", "BTC", "BTN", "BWP", "BYN", "BYR", "BZD", "CAD",
+	"CDF", "CGLD", "CHF", "CLF", "CLP", "CNH", "CNY", "COMP", "COP", "CRC",
+	"CRV", "CUC", "CVC", "CVE", "CZK", "DAI", "DASH", "DJF", "DKK", "DNT",
+	"DOP", "DZD", "EGP", "ENJ", "EOS", "ERN", "ETB", "ETC", "ETH", "ETH2",
+	"EUR", "FIL", "FJD", "FKP", "FORTH", "GBP", "GBX", "GEL", "GGP", "GHS",
+	"GIP", "GMD", "GNF", "GRT", "GTQ", "GYD", "HKD", "HNL", "HRK", "HTG",
+	"HUF", "IDR", "ILS", "IMP", "INR", "IQD", "ISK", "JEP", "JMD", "JOD",
+	"JPY", "KES", "KGS", "KHR", "KMF", "KNC", "KRW", "KWD", "KYD", "KZT",
+	"LAK", "LBP", "LINK", "LKR", "LRC", "LRD", "LSL", "LTC", "LYD", "MAD",
+	"MANA", "MATIC", "MDL", "MGA", "MKD", "MKR", "MMK", "MNT", "MOP", "MRO",
+	"MTL", "MUR", "MVR", "MWK", "MXN", "MYR", "MZN", "NAD", "NGN", "NIO",
+	"NKN", "NMR", "NOK", "NPR", "NU", "NZD", "OGN", "OMG", "OMR", "OXT",
+	"PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "REN", "REP",
+	"RON", "RSD", "RUB", "RWF", "SAR", "SBD", "SCR", "SEK", "SGD", "SHP",
+	"SKL", "SLL", "SNX", "SOS", "SRD", "SSP", "STD", "STORJ", "SUSHI", "SVC",
+	"SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS",
+	"UAH", "UGX", "UMA", "UNI", "USD", "USDC", "UYU", "UZS", "VES", "VND",
+	"VUV", "WBTC", "WST", "XAF", "XAG", "XAU", "XCD", "XDR", "XLM", "XOF",
+	"XPD", "XPF", "XPT", "XTZ", "YER", "YFI", "ZAR", "ZEC", "ZMW", "ZRX",
+	"ZWL"};
 
 //prototypes
 void incomingMqttHandler(char* reqTopic, byte* payload, unsigned int length);;
@@ -50,9 +70,44 @@ void setup();
 void loop();
 
 //Flash constants
-char webPage[] PROGMEM = {
-  "<html><body>"\
-  "This is a web page."\
-  "</body></html>"
-};
+
+const char ssidString[]="<td>WiFi SSID:</td><td><input type=text name=SSID value={ssid}></td>";
+const char passwordString[]="<td>WiFi Password:</td><td><input type=text name=wifiPassword value={wifiPassword}></td>";
+const char scrollDelayOptionString[]="<option value={optNum} {selected}>{optNum}</option>";
+const char checkboxString[] PROGMEM ="<td><input type=checkbox name={coin} id={coin} value={coin}><label for={coin}>{coin}</label></td>";
+const char newRowString[] PROGMEM ="</tr><tr>";
+const char settingsPart1[] PROGMEM = 
+"<html>"
+"  <body>"
+"    <center>CryptoTracker Settings</center>"
+"    <br><br>"
+"    <form method=POST action=/set>"
+"      <table>"
+"	<tr>";
+//SSID string goes here
+//Next row string goes here
+//WiFi password string goes here
+//Next row string goes here
+const char settingsPart2[] PROGMEM = 
+"	  <td>Scroll Delay (seconds):</td><td><select id=scrollDelay name=scrollDelay>";
+//scrollDelayOptionString goes here (x10)
+const char settingsPart3[] PROGMEM = 
+"	    </select>"
+"	    </td>"
+"	  </tr>"
+"	<tr>"
+"	  <td valign=top>Currencies:</td><td>"
+"	    <table>"
+"	      <tr>";
+//checkboxString goes here (once for each coin, newRowString every 5 rows)
+const char settingsPartEnd[] PROGMEM = 
+"		</tr>"
+"	    <tr><td colspan=5 align=center><input type=submit></td></tr>"
+"	    </table>"
+"	    </td>"
+"	  </tr>"
+"	</table>"
+"      </form>"
+"    </body>"
+"  </html>" ;
 
