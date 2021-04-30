@@ -74,7 +74,7 @@ void loop();
 const char ssidString[]="<td>WiFi SSID:</td><td><input type=text name=SSID value={ssid}></td>";
 const char passwordString[]="<td>WiFi Password:</td><td><input type=text name=wifiPassword value={wifiPassword}></td>";
 const char scrollDelayOptionString[]="<option value={optNum} {selected}>{optNum}</option>";
-const char checkboxString[] PROGMEM ="<td><input type=checkbox name={coin} id={coin} value={coin}><label for={coin}>{coin}</label></td>";
+const char checkboxString[] PROGMEM ="<td><input type=checkbox name={coin} id={coin} value={coin}{checked}><label for={coin}>{coin}</label></td>";
 const char newRowString[] PROGMEM ="</tr><tr>";
 const char settingsPart1[] PROGMEM = 
 "<html>"

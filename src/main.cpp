@@ -262,7 +262,8 @@ typedef struct
   char ssid[SSID_SIZE] = "";
   char wifiPassword[PASSWORD_SIZE] = "";
   unsigned int scrollDelay=3; //seconds to pause scrolling for each crypto
-  char myCoins[250]={}; //the coins that I'm interested in
+  char* myCoins[250]={}; //the coins that I'm interested in
+  unsigned int myCoinsIndex=0;
   boolean debug=false;
   } conf;
 
@@ -280,15 +281,10 @@ StaticJsonDocument<COINBASE_JSON_SIZE> jDoc; //this will hold the weather query 
 IPAddress myAPip(192,168,4,1);
 IPAddress myAPmask(255,255,255,0);
 
-float previous[]={0,0,0};
-float prices[]={0,0,0};
-char* tickers[]={"BTC","ETH","1INCH"};
-unsigned int displayCount=sizeof(prices)/sizeof(prices[0]);
+unsigned int allCoinCount=sizeof(allCoins)/sizeof(allCoins[0]);
+float previous[sizeof(allCoins)/sizeof(allCoins[0])];
+float prices[sizeof(allCoins)/sizeof(allCoins[0])];
 unsigned int displayIndex=0; //moving message
-char* name1=tickers[0];
-char* name2=tickers[1];
-float price1=prices[0];
-float price2=prices[1];
 
 char webBuffer[20000];
 
@@ -297,37 +293,66 @@ char* fixup(char* rawString, const char* field, const char* value)
   String rs=String(rawString);
   rs.replace(field,String(value));
   strcpy(rawString,rs.c_str());
+  return rawString;
   }
 
 // Scroll the crypto prices
 void scrollCrypto()
   {
-  if (displayIndex>=displayCount)
+  if (settings.debug)
+    Serial.println(F("Preparing to scroll"));
+
+  static char* name1=settings.myCoins[0];
+  static char* name2=settings.myCoins[1];
+  static float price1=prices[0];
+  static float price2=prices[1];
+
+  //make sure we have something to display
+  if (settings.myCoinsIndex==0)
+    return;
+  if (settings.myCoinsIndex==1)
+    {
+    settings.myCoins[1]=settings.myCoins[0];
+    name2=settings.myCoins[1];
+    }
+
+  if (displayIndex>=settings.myCoinsIndex)
     displayIndex=0;
   price1=price2;
   name1=name2;
   displayIndex++;
-  if (displayIndex>=displayCount)
+  if (displayIndex>=settings.myCoinsIndex)
     displayIndex=0;
   price2=prices[displayIndex];
-  name2=tickers[displayIndex];
+  name2=settings.myCoins[displayIndex];
 
   char message1[11];
   dtostrf(price1,-9,4,message1);
   char message2[11];
   dtostrf(price2,-9,4,message2);
 
+  if (settings.debug)
+    {
+    Serial.print(F("Displaying "));
+    Serial.print(name1);
+    Serial.print("=");
+    Serial.println(message1);
+    Serial.print(F("Scrolling "));
+    Serial.print(name2);
+    Serial.print("=");
+    Serial.println(message2);
+    }
 
   for (int x=128;x>=0;x-=8)
     {
-    checkForCommand(); // Check for input in case something needs to be changed to work
-
     display.clear();
     display.draw_string(0,0,name1,OLED::NORMAL_SIZE);
     display.draw_string(0,15,message1,OLED::DOUBLE_SIZE);
     display.draw_rectangle(x,0,DISPLAY_WIDTH,31,OLED::SOLID,OLED::BLACK);
     display.draw_string(x,0,name2,OLED::NORMAL_SIZE);
     display.draw_string(x,15,message2,OLED::DOUBLE_SIZE);
+
+    checkForCommand(); // Check for input in case something needs to be changed to work
 
     //draw the up or down arrow
     if (x==0)
@@ -343,11 +368,12 @@ void scrollCrypto()
       }
     display.display();
     }
+  if (settings.debug)
+    Serial.println(F("Finished scroll"));
   }
 
 float fetchPrice(char* coin)
   {
-//  digitalWrite(LED_BUILTIN,LOW); //turn on the LED
   digitalWrite(LED_BUILTIN,HIGH); //turn off the LED
   float retval=-1;
   if (settings.debug)
@@ -422,6 +448,7 @@ float fetchPrice(char* coin)
       JsonObject docRoot = jDoc.as<JsonObject>();
       if (docRoot.containsKey("errors"))
         {
+        Serial.println(docRoot);
         Serial.print(F("Error returned for "));
         Serial.println(coin);
         }
@@ -444,17 +471,14 @@ float fetchPrice(char* coin)
  
 void setup() 
   {
-//  ESP.wdtEnable(WDTO_8S);
   pinMode(LED_BUILTIN,OUTPUT);// The blue light on the board shows WiFi activity
 
   Serial.begin(115200);
   Serial.setTimeout(10000);
   Serial.println();
   
-  yield();
   while (!Serial); // wait here for serial port to connect.
-  
-  yield();
+  Serial.println(F("Running."));
 
   if (settings.debug)
     {
@@ -474,12 +498,16 @@ void setup()
     Serial.println(F("Loading settings"));
   loadSettings(); //set the values from eeprom
 
-  // if (settingsAreValid) 
-  //   {
-    if (settings.debug)
-      Serial.println(F("Connecting to WiFi"));
-    if (!connectToWiFi()); //connect to the wifi
-//    }
+  if (settings.scrollDelay<0 ||
+      settings.scrollDelay>15) 
+    {
+    initializeSettings(); //must be a new board or flash was erased
+    }
+
+  if (settings.debug)
+    Serial.println(F("Connecting to WiFi"));
+  connectToWiFi(); //connect to the wifi
+
   display.display();
   }
 
@@ -495,7 +523,8 @@ void loop()
       scrollCrypto();
       nextScroll=millis()+settings.scrollDelay*1000;
       previous[displayIndex]=prices[displayIndex];
-      prices[displayIndex]=fetchPrice(tickers[displayIndex]); //update this coin price
+      if (settings.myCoinsIndex>0 && displayIndex<settings.myCoinsIndex)
+        prices[displayIndex]=fetchPrice(settings.myCoins[displayIndex]); //update this coin price
       }
     }
   checkForCommand(); // Check for input in case something needs to be changed to work
@@ -503,15 +532,38 @@ void loop()
 
 void processSettings(AsyncWebServerRequest* request)
   {
-  Serial.println("Listing post data");
-  for (int i=0;i<request->params();i++)
+  settings.myCoinsIndex=0;
+  for (unsigned int i=0;i<request->params();i++)
     {
-    Serial.println(request->getParam(i)->name());
-    }
-//  if (request.hasParam())
-  
-  }
+    const String value=request->getParam(i)->value();
+    const String name=request->getParam(i)->name();
 
+    if (settings.debug)
+      Serial.println(name+String("=")+value);
+
+    if (name.equals("SSID"))
+      strcpy(settings.ssid,value.c_str());
+    else if (name.equals("wifiPassword"))
+      strcpy(settings.wifiPassword,value.c_str());
+    else if (name.equals("scrollDelay"))
+      settings.scrollDelay=atoi(value.c_str());
+    else
+      {
+      for (unsigned int i=0;i<allCoinCount;i++)
+        {
+        if (name.equals(allCoins[i]))
+          {
+          Serial.print(settings.myCoinsIndex);
+          Serial.print("=");
+          Serial.println(allCoins[i]);
+          settings.myCoins[settings.myCoinsIndex++]=(char*)allCoins[i];
+          break;
+          }
+        }
+      }
+    }
+  saveSettings();
+  }
 
 
 char* buildSettingsPage()
@@ -548,13 +600,24 @@ char* buildSettingsPage()
   //this is the currency 
   strcat_P(webBuffer,settingsPart3);
   //and the individual coin names
-  unsigned int coinCount=sizeof(allCoins)/sizeof(allCoins[0]);
-  for (unsigned int i=0;i<coinCount;i++)
+  unsigned int allCoinCount=sizeof(allCoins)/sizeof(allCoins[0]);
+  for (unsigned int i=0;i<allCoinCount;i++)
     {
     if (i>0 && i%6==0)
       strcat_P(webBuffer,newRowString);
     strcpy_P(temp,checkboxString);
     fixup(temp,"{coin}",allCoins[i]);
+    
+    char checked[]="";
+    for (unsigned int j=0;j<settings.myCoinsIndex;j++)
+      {
+      if (strcmp(settings.myCoins[j],allCoins[i])==0)
+        {
+        strcpy(checked," checked");
+        break;
+        }
+      }
+    fixup(temp,"{checked}",checked);
     strcat(webBuffer,temp);
     }
 
@@ -585,7 +648,7 @@ boolean connectToWiFi()
     for (int i=0;i<15;i++)  
       {
       if (WiFi.status() == WL_CONNECTED)
-        break;  // not yet connected
+        break;  // got it
       if (settings.debug)
         Serial.print(".");
       checkForCommand(); // Check for input in case something needs to be changed to work
@@ -607,19 +670,19 @@ boolean connectToWiFi()
     else //can't connect to wifi, let's make our own
       {
       retval=false;
-      Serial.println("Connection unsuccessful. Creating AP.");
+      Serial.println(F("WiFi connection unsuccessful. Creating AP."));
       WiFi.disconnect(); 
       ESP.eraseConfig();
       WiFi.softAPConfig(myAPip,myAPip,myAPmask);  
-      if (WiFi.softAP("cryptoWatcher"))
+      if (WiFi.softAP(F("cryptoTracker")))
         {
-        Serial.println("AP started.  Use address 192.168.4.1");
+        Serial.println(F("AP started.  Use address 192.168.4.1"));
         strcpy(addr,WiFi.softAPIP().toString().c_str());
         }
       else
         {
-        Serial.println("AP failed to start.");
-        strcpy(addr,"Wifi Fail");
+        Serial.println(F("AP failed to start."));
+        strcpy_P(addr,"Wifi Fail");
         }
       }
     //show the IP address
@@ -656,6 +719,16 @@ void showSettings()
   Serial.println(")");
   Serial.print("scrollDelay=<number of seconds to show each crypto> (");
   Serial.print(settings.scrollDelay);
+  Serial.println(")");
+  Serial.print("myCoinsIndex=<(can't be modified)> (");
+  Serial.print(settings.myCoinsIndex);
+  Serial.println(")");
+  Serial.print("myCoins=<crypto to display (use addCoin= to add more)> (");
+  for (unsigned int i=0;i<settings.myCoinsIndex;i++)
+    {
+    Serial.print(settings.myCoins[i]);
+    Serial.print(",");
+    }
   Serial.println(")");
   Serial.print("debug=<print debug messages to serial port> (");
   Serial.print(settings.debug?"true":"false");
@@ -712,6 +785,18 @@ bool processCommand(String cmd)
     settings.scrollDelay=atoi(val);
     saveSettings();
     }
+  else if (strcmp(nme,"addCoin")==0)
+    {
+    for (unsigned int i=0;i<allCoinCount;i++)
+        {
+        if (strcmp(val,allCoins[i])==0)
+          {
+          settings.myCoins[settings.myCoinsIndex++]=(char*)allCoins[i];
+          break;
+          }
+        }
+    saveSettings();
+    }
   else if (strcmp(nme,"debug")==0)
     {
     settings.debug=strcmp(val,"false")==0?false:true;
@@ -739,6 +824,7 @@ void initializeSettings()
   strcpy(settings.ssid,"");
   strcpy(settings.wifiPassword,"");
   settings.scrollDelay=3;
+  settings.myCoinsIndex=0;
   settings.debug=false;
   }
 
@@ -780,7 +866,9 @@ void loadSettings()
 boolean saveSettings()
   {
   if (strlen(settings.ssid)>0 &&
-    strlen(settings.wifiPassword)>0)
+    strlen(settings.ssid)<=SSID_SIZE &&
+    strlen(settings.wifiPassword)>0 &&
+    strlen(settings.wifiPassword)<=PASSWORD_SIZE)
     {
     Serial.println("Settings deemed complete");
     settings.validConfig=VALID_SETTINGS_FLAG;
