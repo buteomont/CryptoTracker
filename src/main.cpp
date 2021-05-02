@@ -264,6 +264,7 @@ typedef struct
   unsigned int scrollDelay=3; //seconds to pause scrolling for each crypto
   char* myCoins[250]={}; //the coins that I'm interested in
   unsigned int myCoinsIndex=0;
+  int priceType=2;  //1="buy", 2="spot", 3="sell"
   boolean debug=false;
   } conf;
 
@@ -286,7 +287,7 @@ float previous[sizeof(allCoins)/sizeof(allCoins[0])];
 float prices[sizeof(allCoins)/sizeof(allCoins[0])];
 unsigned int displayIndex=0; //moving message
 
-char webBuffer[20000];
+char webBuffer[21000];
 
 char* fixup(char* rawString, const char* field, const char* value)
   {
@@ -410,6 +411,22 @@ float fetchPrice(char* coin)
     //insert the coin ticker symbol into the URL
     strcpy(properURL,CRYPTO_URL);
     fixup(properURL,"{crypto}",coin);
+    switch (settings.priceType)
+    {
+    case 1:
+      fixup(properURL,"{priceType}","buy");
+      break;
+    case 2:
+      fixup(properURL,"{priceType}","spot");
+      break;
+    case 3:
+      fixup(properURL,"{priceType}","sell");
+      break;
+    default:
+      Serial.println(F("Invalid price type setting!"));
+      fixup(properURL,"{priceType}","spot"); //default if bogus
+      break;
+    }
     String url=String(properURL);
 
     if (settings.debug)
@@ -480,11 +497,6 @@ void setup()
   while (!Serial); // wait here for serial port to connect.
   Serial.println(F("Running."));
 
-  if (settings.debug)
-    {
-    Serial.print(F("*********************** Setting size is "));
-    Serial.println(sizeof(settings));
-    }
   EEPROM.begin(sizeof(settings)); //fire up the eeprom section of flash
   commandString.reserve(200); // reserve 200 bytes of serial buffer space for incoming command string
 
@@ -499,7 +511,9 @@ void setup()
   loadSettings(); //set the values from eeprom
 
   if (settings.scrollDelay<0 ||
-      settings.scrollDelay>15) 
+      settings.scrollDelay>15 ||
+      settings.priceType<1 ||
+      settings.priceType>3) 
     {
     initializeSettings(); //must be a new board or flash was erased
     }
@@ -525,6 +539,12 @@ void loop()
       previous[displayIndex]=prices[displayIndex];
       if (settings.myCoinsIndex>0 && displayIndex<settings.myCoinsIndex)
         prices[displayIndex]=fetchPrice(settings.myCoins[displayIndex]); //update this coin price
+      
+      if (settings.debug)
+        {
+        Serial.print(F("Heap size is "));
+        Serial.println(system_get_free_heap_size());
+        }
       }
     }
   checkForCommand(); // Check for input in case something needs to be changed to work
@@ -547,6 +567,8 @@ void processSettings(AsyncWebServerRequest* request)
       strcpy(settings.wifiPassword,value.c_str());
     else if (name.equals("scrollDelay"))
       settings.scrollDelay=atoi(value.c_str());
+    else if (name.equals("pricetype"))
+      settings.priceType=atoi(value.c_str());
     else
       {
       for (unsigned int i=0;i<allCoinCount;i++)
@@ -556,6 +578,8 @@ void processSettings(AsyncWebServerRequest* request)
           Serial.print(settings.myCoinsIndex);
           Serial.print("=");
           Serial.println(allCoins[i]);
+          previous[settings.myCoinsIndex]=0;
+          prices[settings.myCoinsIndex]=0;
           settings.myCoins[settings.myCoinsIndex++]=(char*)allCoins[i];
           break;
           }
@@ -569,6 +593,7 @@ void processSettings(AsyncWebServerRequest* request)
 char* buildSettingsPage()
   {
   char temp[150];
+  char sel[9];
 
   strcpy_P(webBuffer,settingsPart1);
 
@@ -589,16 +614,38 @@ char* buildSettingsPage()
     {
     strcpy_P(temp,scrollDelayOptionString);
     char num[3];
-    char sel[9]=" ";
     if (i==settings.scrollDelay)
-      strcpy(sel,"selected");
+      strcpy(sel," selected");
+    else
+      strcpy(sel," ");
     fixup(temp,"{optNum}",itoa(i,num,10));
     fixup(temp,"{selected}",sel);
     strcat(webBuffer,temp);
     }
 
-  //this is the currency 
+  //add the price type lines
   strcat_P(webBuffer,settingsPart3);
+  strcpy_P(temp,priceTypeString);
+  fixup(temp,"{ptype}","buy");
+  fixup(temp,"{Ptype}","Buy");
+  fixup(temp,"{ptypeNum}","1");
+  fixup(temp,"{checked}",settings.priceType==1?" checked":" ");
+  strcat(webBuffer,temp);
+  strcpy_P(temp,priceTypeString);
+  fixup(temp,"{ptype}","spot");
+  fixup(temp,"{Ptype}","Spot");
+  fixup(temp,"{ptypeNum}","2");
+  fixup(temp,"{checked}",settings.priceType==2?" checked":" ");
+  strcat(webBuffer,temp);
+  strcpy_P(temp,priceTypeString);
+  fixup(temp,"{ptype}","sell");
+  fixup(temp,"{Ptype}","Sell");
+  fixup(temp,"{ptypeNum}","3");
+  fixup(temp,"{checked}",settings.priceType==3?" checked":" ");
+  strcat(webBuffer,temp);
+
+  //this is the currency 
+  strcat_P(webBuffer,settingsPart4);
   //and the individual coin names
   unsigned int allCoinCount=sizeof(allCoins)/sizeof(allCoins[0]);
   for (unsigned int i=0;i<allCoinCount;i++)
@@ -688,7 +735,10 @@ boolean connectToWiFi()
     //show the IP address
     Serial.println(addr);
     display.clear();
-    display.draw_string(0,DISPLAY_HEIGHT/2-8,addr);
+    display.draw_string(0,0,addr);
+    char buff[20]="Price type: ";
+    strcat(buff,settings.priceType==1?"buy":settings.priceType==2?"spot":"sell");
+    display.draw_string(0,10,buff);
     display.display();
     delay(5000);
 
@@ -700,10 +750,9 @@ boolean connectToWiFi()
       {
       Serial.println("Processing POST");
       processSettings(request);
-      request->send_P(200, "text/html", buildSettingsPage());
+      request->redirect("/");
       });
   
-    ESP.wdtFeed();
     server.begin();
     }
   return retval;
@@ -720,8 +769,8 @@ void showSettings()
   Serial.print("scrollDelay=<number of seconds to show each crypto> (");
   Serial.print(settings.scrollDelay);
   Serial.println(")");
-  Serial.print("myCoinsIndex=<(can't be modified)> (");
-  Serial.print(settings.myCoinsIndex);
+  Serial.print("priceType=<1=buy, 2=spot, 3=sell> (");
+  Serial.print(settings.priceType);
   Serial.println(")");
   Serial.print("myCoins=<crypto to display (use addCoin= to add more)> (");
   for (unsigned int i=0;i<settings.myCoinsIndex;i++)
@@ -825,6 +874,7 @@ void initializeSettings()
   strcpy(settings.wifiPassword,"");
   settings.scrollDelay=3;
   settings.myCoinsIndex=0;
+  settings.priceType=2;
   settings.debug=false;
   }
 
@@ -868,7 +918,8 @@ boolean saveSettings()
   if (strlen(settings.ssid)>0 &&
     strlen(settings.ssid)<=SSID_SIZE &&
     strlen(settings.wifiPassword)>0 &&
-    strlen(settings.wifiPassword)<=PASSWORD_SIZE)
+    strlen(settings.wifiPassword)<=PASSWORD_SIZE &&
+    settings.priceType>0 && settings.priceType<4)
     {
     Serial.println("Settings deemed complete");
     settings.validConfig=VALID_SETTINGS_FLAG;
