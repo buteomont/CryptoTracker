@@ -1,242 +1,24 @@
 #include <Arduino.h>
-
 /*
  * Program to track and display the spot price for cryptocurrencies.
-Below is a list of the supported cryptos. It's frustrating how
-hard it is to find the name that goes with the ticker symbol.
-
-1INCH - (ETH exchange)
-AAVE
-ADA - Cardano
-AED
-AFN
-ALGO
-ALL
-AMD
-ANG
-ANKR
-AOA
-ARS
-ATOM
-AUD
-AWG
-AZN
-BAL
-BAM
-BAND
-BAT - Basic Attent.
-BBD
-BCH - Bitcoin Cash
-BDT
-BGN
-BHD
-BIF
-BMD
-BND
-BNT - Bancor
-BOB
-BRL
-BSD
-BSV
-BTC - Bitcoin
-BTN
-BWP
-BYN
-BYR
-BZD
-CAD
-CDF
-CGLD
-CHF
-CLF
-CLP
-CNH
-CNY
-COMP
-COP
-CRC
-CRV
-CUC
-CVC - Civic
-CVE
-CZK
-DAI
-DASH - Dash
-DJF
-DKK
-DNT - district0x
-DOP
-DZD
-EGP
-ENJ - Enjin Coin
-EOS - EOS
-ERN
-ETB
-ETC - Ethereum Classic
-ETH - Ethereum
-ETH2
-EUR
-FIL
-FJD
-FKP
-FORTH
-GBP
-GBX
-GEL
-GGP
-GHS
-GIP
-GMD
-GNF
-GRT
-GTQ
-GYD
-HKD
-HNL
-HRK
-HTG
-HUF
-IDR
-ILS
-IMP
-INR
-IQD
-ISK
-JEP
-JMD
-JOD
-JPY
-KES
-KGS
-KHR
-KMF
-KNC - Kyber Network
-KRW
-KWD
-KYD
-KZT
-LAK
-LBP
-LINK - ChainLink
-LKR
-LRC - Loopring
-LRD
-LSL
-LTC - Litecoin
-LYD
-MAD
-MANA - Decentraland
-MATIC
-MDL
-MGA
-MKD
-MKR - Maker
-MMK
-MNT
-MOP
-MRO
-MTL - Metal
-MUR
-MVR
-MWK
-MXN
-MYR
-MZN
-NAD
-NGN
-NIO
-NKN
-NMR
-NOK
-NPR
-NU
-NZD
-OGN
-OMG - OmiseGO
-OMR
-OXT
-PAB
-PEN
-PGK
-PHP
-PKR
-PLN
-PYG
-QAR
-REN
-REP - Augur
-RON
-RSD
-RUB
-RWF
-SAR
-SBD
-SCR
-SEK
-SGD
-SHP
-SKL
-SLL
-SNX
-SOS
-SRD
-SSP
-STD
-STORJ - Storj
-SUSHI
-SVC
-SZL
-THB
-TJS
-TMT
-TND
-TOP
-TRY
-TTD
-TWD
-TZS
-UAH
-UGX
-UMA
-UNI
-USD
-USDC
-UYU
-UZS
-VES
-VND
-VUV
-WBTC
-WST
-XAF
-XAG
-XAU
-XCD
-XDR
-XLM - Stellar
-XOF
-XPD
-XPF
-XPT
-XTZ
-YER
-YFI
-ZAR
-ZEC - Zcash
-ZMW
-ZRX - 0x
-ZWL
- 
-*/
-#include <Arduino.h>
-/**
- * This is an ESP8266 program to display the time and weather on an
- * OLED display.
+ * By David E. Powell 
  *
- * Configuration is done via serial connection.  Enter:
- *  ssid=<wifi ssid>
- *  wifipass=<wifi password>
- *  scrollDelay=<seconds to display each coin> 
+ * Configuration is done via serial connection or by browsing to
+ * the device. If the device can't connect to the local WiFi, it
+ * creates its own access point for configuration.
+ *  
+ * Note: The case I made for this had to have the display rotated
+ * 180 degrees. To do this, I had to customize the arduino-lib-oled
+ * library.
+ * In oled.cpp lines 248 and 249 I changed
+ * i2c_send(0xA1); // segment remapping mode
+ * and
+ * i2c_send(0xC8); // COM output scan direction
+ * to
+ * i2c_send(0xA0); // segment remapping mode
+ * and
+ * i2c_send(0xC0); // COM output scan direction,
+ * respectively.
  */ 
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -247,9 +29,13 @@ ZWL
 #include <oled.h>
 #include "ESPAsyncWebServer.h"
 #include "cryptoTracker.h"
+// #include <SPI.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
 
 AsyncWebServer server(80);
 OLED display=OLED(SDA,SCL,NO_RESET_PIN,0x3C,128,32,true);
+//Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
 WiFiClientSecure wifiClient;
 HTTPClient http;
@@ -353,6 +139,7 @@ void scrollCrypto()
     display.draw_string(x,0,name2,OLED::NORMAL_SIZE);
     display.draw_string(x,15,message2,OLED::DOUBLE_SIZE);
 
+
     checkForCommand(); // Check for input in case something needs to be changed to work
 
     //draw the up or down arrow
@@ -450,7 +237,9 @@ float fetchPrice(char* coin)
       }
 
     //Now for the payload
-    String response=wifiClient.readString();
+//    String response=wifiClient.readString();
+    char response[PRICE_BUF_LENGTH]="";
+    wifiClient.readBytes(response,PRICE_BUF_LENGTH);
     if (settings.debug)
       Serial.println(response);
 
@@ -501,7 +290,7 @@ void setup()
   commandString.reserve(200); // reserve 200 bytes of serial buffer space for incoming command string
 
   display.begin();
-
+  
   display.set_contrast(100);
   display.clear();
 

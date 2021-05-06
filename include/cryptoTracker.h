@@ -12,6 +12,7 @@
 #define CRYPTO_HOST "api.coinbase.com"
 #define CRYPTO_URL "/v2/prices/{crypto}-USD/{priceType}"
 #define COINBASE_JSON_SIZE 500
+#define PRICE_BUF_LENGTH 100
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32
