@@ -323,7 +323,8 @@ void loop()
 
     if (millis()>nextScroll)
       {
-      scrollCrypto();
+      scrollCrypto(); //show this one
+
       nextScroll=millis()+settings.scrollDelay*1000;
       previous[displayIndex]=prices[displayIndex];
       if (settings.myCoinsIndex>0 && displayIndex<settings.myCoinsIndex)

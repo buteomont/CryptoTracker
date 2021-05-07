@@ -60,7 +60,6 @@ BSD
 BSV
 BTC
 BTC - Bitcoin
-BTC - bitcoin
 BTC or XBT - Bitcoin
 BTCD - Bitcoin Dark
 BTG - Bitcoin Gold
