@@ -147,11 +147,11 @@ void scrollCrypto()
       {
       if (prices[displayIndex]>previous[displayIndex])
         {
-        display.draw_bitmap_P(DISPLAY_WIDTH-13,0,13,16,upArrow,OLED::WHITE);
+        display.draw_bitmap_P(DISPLAY_WIDTH-13,0,13,16,(uint8_t*)FPSTR(upArrow),OLED::WHITE);
         }
       else if (prices[displayIndex]<previous[displayIndex])
         {
-        display.draw_bitmap_P(DISPLAY_WIDTH-13,0,13,16,downArrow,OLED::WHITE);
+        display.draw_bitmap_P(DISPLAY_WIDTH-13,0,13,16,(uint8_t*)FPSTR(downArrow),OLED::WHITE);
         }
       }
     display.display();
@@ -286,6 +286,11 @@ void setup()
   while (!Serial); // wait here for serial port to connect.
   Serial.println(F("Running."));
 
+  //reset the wifi
+  WiFi.disconnect(true); 
+  WiFi.softAPdisconnect(true);
+  ESP.eraseConfig();
+
   EEPROM.begin(sizeof(settings)); //fire up the eeprom section of flash
   commandString.reserve(200); // reserve 200 bytes of serial buffer space for incoming command string
 
@@ -363,14 +368,14 @@ void processSettings(AsyncWebServerRequest* request)
       {
       for (unsigned int i=0;i<allCoinCount;i++)
         {
-        if (name.equals(allCoins[i]))
+        if (name.equals((const char*)FPSTR(allCoins[i])))
           {
           Serial.print(settings.myCoinsIndex);
           Serial.print("=");
-          Serial.println(allCoins[i]);
+          Serial.println((const char*)FPSTR(allCoins[i]));
           previous[settings.myCoinsIndex]=0;
           prices[settings.myCoinsIndex]=0;
-          settings.myCoins[settings.myCoinsIndex++]=(char*)allCoins[i];
+          settings.myCoins[settings.myCoinsIndex++]=(char*)FPSTR(allCoins[i]);
           break;
           }
         }
@@ -437,18 +442,17 @@ char* buildSettingsPage()
   //this is the currency 
   strcat_P(webBuffer,settingsPart4);
   //and the individual coin names
-  unsigned int allCoinCount=sizeof(allCoins)/sizeof(allCoins[0]);
   for (unsigned int i=0;i<allCoinCount;i++)
     {
     if (i>0 && i%6==0)
       strcat_P(webBuffer,newRowString);
     strcpy_P(temp,checkboxString);
-    fixup(temp,"{coin}",allCoins[i]);
-    
+    fixup(temp,"{coin}",(const char*)FPSTR(allCoins[i]));
+        
     char checked[]="";
     for (unsigned int j=0;j<settings.myCoinsIndex;j++)
       {
-      if (strcmp(settings.myCoins[j],allCoins[i])==0)
+      if (strcmp_P(settings.myCoins[j],allCoins[i])==0)
         {
         strcpy(checked," checked");
         break;
@@ -478,11 +482,12 @@ boolean connectToWiFi()
       Serial.print(settings.ssid);
       Serial.println("\"");
       }
+
     WiFi.mode(WIFI_STA); //station mode, we are only a client in the wifi world
     WiFi.begin(settings.ssid, settings.wifiPassword);
 
     //try for 5 seconds to connect to existing wifi
-    for (int i=0;i<15;i++)  
+    for (int i=0;i<25;i++)  
       {
       if (WiFi.status() == WL_CONNECTED)
         break;  // got it
@@ -507,6 +512,8 @@ boolean connectToWiFi()
     else //can't connect to wifi, let's make our own
       {
       retval=false;
+      Serial.print("Wifi status is ");
+      Serial.println(WiFi.status());
       Serial.println(F("WiFi connection unsuccessful. Creating AP."));
       WiFi.disconnect(); 
       ESP.eraseConfig();
@@ -628,9 +635,9 @@ bool processCommand(String cmd)
     {
     for (unsigned int i=0;i<allCoinCount;i++)
         {
-        if (strcmp(val,allCoins[i])==0)
+        if (strcmp_P(val,allCoins[i])==0)
           {
-          settings.myCoins[settings.myCoinsIndex++]=(char*)allCoins[i];
+          settings.myCoins[settings.myCoinsIndex++]=(char*)FPSTR(allCoins[i]);
           break;
           }
         }
@@ -641,12 +648,18 @@ bool processCommand(String cmd)
     settings.debug=strcmp(val,"false")==0?false:true;
     saveSettings();
     }
- else if ((strcmp(nme,"factorydefaults")==0) && (strcmp(val,"yes")==0)) //reset all eeprom settings
+  else if ((strcmp(nme,"factorydefaults")==0) && (strcmp(val,"yes")==0)) //reset all eeprom settings
     {
     Serial.println("\n*********************** Resetting EEPROM Values ************************");
     initializeSettings();
     saveSettings();
     delay(2000);
+    ESP.restart();
+    }
+  else if ((strcmp(nme,"reset")==0) && (strcmp(val,"yes")==0)) //reset the device
+    {
+    Serial.println("\n*********************** Resetting Device ************************");
+    delay(1000);
     ESP.restart();
     }
   else
