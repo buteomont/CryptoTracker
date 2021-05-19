@@ -175,7 +175,7 @@ float fetchPrice(char* coin)
 
   //Fetch the coin price JSON object
   wifiClient.setInsecure();
-  wifiClient.setBufferSizes(1500, 128);
+  wifiClient.setBufferSizes(2500, 128);
   if(!wifiClient.connect(CRYPTO_HOST, 443))
     {
     if (settings.debug)
@@ -184,6 +184,7 @@ float fetchPrice(char* coin)
       char errmsg[200];
       wifiClient.getLastSSLError(errmsg,200);
       Serial.println(errmsg);
+      wifiClient.stop();
       }
     }
   else 
@@ -333,8 +334,11 @@ void loop()
       nextScroll=millis()+settings.scrollDelay*1000;
       previous[displayIndex]=prices[displayIndex];
       if (settings.myCoinsIndex>0 && displayIndex<settings.myCoinsIndex)
-        prices[displayIndex]=fetchPrice(settings.myCoins[displayIndex]); //update this coin price
-      
+        {
+        float price=fetchPrice(settings.myCoins[displayIndex]); //update this coin price
+        if (price>0) //only update it if no errors
+          prices[displayIndex]=price;
+        }
       if (settings.debug)
         {
         Serial.print(F("Heap size is "));
@@ -483,6 +487,11 @@ boolean connectToWiFi()
       Serial.println("\"");
       }
 
+    //notifiy the user
+    display.clear();
+    display.draw_string(0,10,"Connecting to wifi...");
+    display.display();
+
     WiFi.mode(WIFI_STA); //station mode, we are only a client in the wifi world
     WiFi.begin(settings.ssid, settings.wifiPassword);
 
@@ -532,10 +541,18 @@ boolean connectToWiFi()
     //show the IP address
     Serial.println(addr);
     display.clear();
-    display.draw_string(0,0,addr);
-    char buff[20]="Price type: ";
-    strcat(buff,settings.priceType==1?"buy":settings.priceType==2?"spot":"sell");
-    display.draw_string(0,10,buff);
+    display.draw_string(0,20,addr);
+    if (WiFi.status() == WL_CONNECTED)
+      {
+      char buff[20]="Price type: ";
+      strcat(buff,settings.priceType==1?"buy":settings.priceType==2?"spot":"sell");
+      display.draw_string(0,10,buff);
+      }
+    else
+      {
+      display.draw_string(0,0,"WiFi not in range");
+      display.draw_string(0,10,"Use \"cryptoTracker\"");
+      }
     display.display();
     delay(5000);
 
