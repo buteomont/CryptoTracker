@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "PlatformIO",
+			"task": "Erase Flash (d1_mini)",
+			"problemMatcher": [
+				"$platformio"
+			],
+			"label": "PlatformIO: Erase Flash (d1_mini)"
+		}
+	]
+}

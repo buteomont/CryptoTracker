@@ -14,6 +14,8 @@
 #define COINBASE_JSON_SIZE 500
 #define PRICE_BUF_LENGTH 100
 
+#define MAX_HEADER_TIME 5000 //milliseconds to wait for server response
+
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32
 

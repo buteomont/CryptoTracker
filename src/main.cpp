@@ -19,6 +19,9 @@
  * and
  * i2c_send(0xC0); // COM output scan direction,
  * respectively.
+ * 
+ * **** to erase the entire flash chip in PlatformIO open
+ * **** a terminal and type "pio run -t erase"
  */ 
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -32,6 +35,8 @@
 // #include <SPI.h>
 // #include <Adafruit_GFX.h>
 // #include <Adafruit_SSD1306.h>
+
+char *stack_start;// initial stack size
 
 AsyncWebServer server(80);
 OLED display=OLED(SDA,SCL,NO_RESET_PIN,0x3C,128,32,true);
@@ -75,11 +80,20 @@ unsigned int displayIndex=0; //moving message
 
 char webBuffer[21000];
 
+void printStackSize(char id)
+  {
+  char stack;
+  Serial.print(id);
+  Serial.print (F(": stack size "));
+  Serial.println (stack_start - &stack);
+  }
+
 char* fixup(char* rawString, const char* field, const char* value)
   {
   String rs=String(rawString);
   rs.replace(field,String(value));
   strcpy(rawString,rs.c_str());
+  printStackSize('F');
   return rawString;
   }
 
@@ -156,12 +170,14 @@ void scrollCrypto()
       }
     display.display();
     }
+  printStackSize('S');
   if (settings.debug)
     Serial.println(F("Finished scroll"));
   }
 
 float fetchPrice(char* coin)
   {
+  printStackSize('A');
   digitalWrite(LED_BUILTIN,HIGH); //turn off the LED
   float retval=-1;
   if (settings.debug)
@@ -226,50 +242,56 @@ float fetchPrice(char* coin)
     wifiClient.println();
 
     //discard the headers
-    while (wifiClient.connected()) 
+    boolean contacted=false; 
+    unsigned long abandon=millis()+MAX_HEADER_TIME;
+    while (wifiClient.connected() && millis()<abandon) 
       {
       String line = wifiClient.readStringUntil('\n');
       if (line == "\r") 
         {
+        printStackSize('B');
         if (settings.debug)
           Serial.println(F("headers discarded"));
+        contacted=true; //we're in touch with the server
         break;
         }
       }
 
     //Now for the payload
-//    String response=wifiClient.readString();
-    char response[PRICE_BUF_LENGTH]="";
-    wifiClient.readBytes(response,PRICE_BUF_LENGTH);
-    if (settings.debug)
-      Serial.println(response);
-
-    wifiClient.stop();
-
-    //Decode the JSON response
-    DeserializationError de=deserializeJson(jDoc, response);
-    if (de.code()==de.Ok)
+    if (wifiClient.connected() && contacted)
       {
+      char response[PRICE_BUF_LENGTH]="";
+      wifiClient.readBytes(response,PRICE_BUF_LENGTH);
       if (settings.debug)
-        Serial.println("...done.");
-      JsonObject docRoot = jDoc.as<JsonObject>();
-      if (docRoot.containsKey("errors"))
+        Serial.println(response);
+
+      wifiClient.stop();
+
+      //Decode the JSON response
+      DeserializationError de=deserializeJson(jDoc, response);
+      if (de.code()==de.Ok)
         {
-        Serial.println(docRoot);
-        Serial.print(F("Error returned for "));
-        Serial.println(coin);
-        }
-      else  
-        {
-        retval=docRoot["data"]["amount"].as<float>();
         if (settings.debug)
-          Serial.println(coin+String("'s value is ")+String(retval));
+          Serial.println("...done.");
+        JsonObject docRoot = jDoc.as<JsonObject>();
+        if (docRoot.containsKey("errors"))
+          {
+          Serial.println(docRoot);
+          Serial.print(F("Error returned for "));
+          Serial.println(coin);
+          }
+        else  
+          {
+          retval=docRoot["data"]["amount"].as<float>();
+          if (settings.debug)
+            Serial.println(coin+String("'s value is ")+String(retval));
+          }
         }
-      }
-    else
-      {
-      Serial.print(F("...Error: "));
-      Serial.println(de.code());
+      else
+        {
+        Serial.print(F("...Error: "));
+        Serial.println(de.code());
+        }
       }
     }
 //  digitalWrite(LED_BUILTIN,HIGH); //turn off the LED
@@ -278,6 +300,10 @@ float fetchPrice(char* coin)
  
 void setup() 
   {
+  //init record of stack
+  char stack;
+  stack_start = &stack;  
+  
   pinMode(LED_BUILTIN,OUTPUT);// The blue light on the board shows WiFi activity
 
   Serial.begin(115200);
@@ -289,8 +315,8 @@ void setup()
 
   //reset the wifi
   WiFi.disconnect(true); 
-  WiFi.softAPdisconnect(true);
-  ESP.eraseConfig();
+//  WiFi.softAPdisconnect(true);
+//  ESP.eraseConfig();
 
   EEPROM.begin(sizeof(settings)); //fire up the eeprom section of flash
   commandString.reserve(200); // reserve 200 bytes of serial buffer space for incoming command string
@@ -343,6 +369,7 @@ void loop()
         {
         Serial.print(F("Heap size is "));
         Serial.println(system_get_free_heap_size());
+        printStackSize('L');
         }
       }
     }
