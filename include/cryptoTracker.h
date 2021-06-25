@@ -34,7 +34,7 @@ static const uint8_t downArrow[] PROGMEM =
 const char* const allCoins[] PROGMEM =
 	{
 	"1INCH", "AAVE", "ADA", "ALGO", "ANKR", "ATOM", "BAL", "BAND", "BAT", "BCH",
-	"BNT", "BTC", "CGLD", "COMP", "CRV", "DAI", "DASH", "ENJ", "EOS", "ETC",
+	"BNT", "BTC", "CGLD", "COMP", "CRV", "DAI", "DASH", "DOGE","ENJ", "EOS", "ETC",
 	"ETH", "FIL", "FORTH", "GRT", "KNC", "LINK", "LRC", "LTC", "MANA", "MATIC",
 	"MKR", "NKN", "NMR", "NU", "OGN", "OMG", "OXT", "REN", "REP", "SKL",
 	"SNX", "STORJ", "SUSHI", "UMA", "UNI", "USDT", "WBTC", "XLM", "XTZ", "YFI",
@@ -46,7 +46,7 @@ const char* const allCoins[] PROGMEM =
 	// "BRL", "BSD", "BSV", "BTC", "BTN", "BWP", "BYN", "BYR", "BZD", "CAD",
 	// "CDF", "CGLD", "CHF", "CLF", "CLP", "CNH", "CNY", "COMP", "COP", "CRC",
 	// "CRV", "CUC", "CVC", "CVE", "CZK", "DAI", "DASH", "DJF", "DKK", "DNT",
-	// "DOP", "DZD", "EGP", "ENJ", "EOS", "ERN", "ETB", "ETC", "ETH", "ETH2",
+	// "DOGE","DOP", "DZD", "EGP", "ENJ", "EOS", "ERN", "ETB", "ETC", "ETH", "ETH2",
 	// "EUR", "FIL", "FJD", "FKP", "FORTH", "GBP", "GBX", "GEL", "GGP", "GHS",
 	// "GIP", "GMD", "GNF", "GRT", "GTQ", "GYD", "HKD", "HNL", "HRK", "HTG",
 	// "HUF", "IDR", "ILS", "IMP", "INR", "IQD", "ISK", "JEP", "JMD", "JOD",
