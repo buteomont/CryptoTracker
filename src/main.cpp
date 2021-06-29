@@ -82,10 +82,13 @@ char webBuffer[21000];
 
 void printStackSize(char id)
   {
-  char stack;
-  Serial.print(id);
-  Serial.print (F(": stack size "));
-  Serial.println (stack_start - &stack);
+  if (settings.debug)
+    {
+    char stack;
+    Serial.print(id);
+    Serial.print (F(": stack size "));
+    Serial.println (stack_start - &stack);
+    }
   }
 
 char* fixup(char* rawString, const char* field, const char* value)
