@@ -321,7 +321,8 @@ void setup()
 //  WiFi.softAPdisconnect(true);
 //  ESP.eraseConfig();
 
-  EEPROM.begin(sizeof(settings)); //fire up the eeprom section of flash
+  size_t settingsSize=sizeof(settings);
+  EEPROM.begin(settingsSize+settingsSize%4); //must be on a 4-byte boundary
   commandString.reserve(200); // reserve 200 bytes of serial buffer space for incoming command string
 
   display.begin();
