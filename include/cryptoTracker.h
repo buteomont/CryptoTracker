@@ -91,7 +91,7 @@ const char newRowString[] PROGMEM ="</tr><tr>";
 const char settingsPart1[] PROGMEM = 
 "<html>"
 "  <body>"
-"    <center>Luke's CryptoTracker Settings</center>"
+"    <center>CryptoTracker Settings</center>"
 "    <br><br>"
 "    <form method=POST action=/set>"
 "      <table>"

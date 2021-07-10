@@ -1,6 +1,6 @@
 #include <Arduino.h>
 /*
- * Program to track and display the spot price for cryptocurrencies.
+ * Program to track and display the buy,spot,or sell price for cryptocurrencies.
  * By David E. Powell 
  *
  * Configuration is done via serial connection or by browsing to
@@ -26,19 +26,15 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <EEPROM.h>
-#include <pgmspace.h>
 #include <Wire.h>
 #include <ArduinoJson.h>
 #include <oled.h>
-#include "ESPAsyncWebServer.h"
+#include "ESP8266WebServer.h"
 #include "cryptoTracker.h"
-// #include <SPI.h>
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
 
 char *stack_start;// initial stack size
 
-AsyncWebServer server(80);
+ESP8266WebServer server(80);
 OLED display=OLED(SDA,SCL,NO_RESET_PIN,0x3C,128,32,true);
 //Adafruit_SSD1306 display(128, 32, &Wire, -1);
 
@@ -350,10 +346,13 @@ void setup()
   display.display();
   }
 
+
 void loop()
   {
+  server.handleClient(); //get any incoming requests
   if (WiFi.status() == WL_CONNECTED)
     {
+
     static unsigned long nextScroll=millis()+settings.scrollDelay*1000;
     ESP.wdtFeed();  
 
@@ -380,18 +379,23 @@ void loop()
   checkForCommand(); // Check for input in case something needs to be changed to work
   }
 
-void processSettings(AsyncWebServerRequest* request)
+void processSettings()
   {
-  settings.myCoinsIndex=0;
-  for (unsigned int i=0;i<request->params();i++)
+  if (settings.debug)
     {
-    const String value=request->getParam(i)->value();
-    const String name=request->getParam(i)->name();
+    Serial.println("Processing settings...");
+    }
+  settings.myCoinsIndex=0;
+  for (int i=0;i<server.args();i++)
+    {
+    const String value=server.arg(i);
+    const String name=server.argName(i);
 
     if (settings.debug)
       Serial.println(name+String("=")+value);
-
-    if (name.equals("SSID"))
+    if (name.equals("plain"))
+      continue;
+    else if (name.equals("SSID"))
       strcpy(settings.ssid,value.c_str());
     else if (name.equals("wifiPassword"))
       strcpy(settings.wifiPassword,value.c_str());
@@ -423,7 +427,7 @@ void processSettings(AsyncWebServerRequest* request)
 char* buildSettingsPage()
   {
   char temp[150];
-  char sel[9];
+  char sel[10];
 
   strcpy_P(webBuffer,settingsPart1);
 
@@ -484,7 +488,7 @@ char* buildSettingsPage()
     strcpy_P(temp,checkboxString);
     fixup(temp,"{coin}",(const char*)FPSTR(allCoins[i]));
         
-    char checked[]="";
+    char checked[10]="";
     for (unsigned int j=0;j<settings.myCoinsIndex;j++)
       {
       if (strcmp_P(settings.myCoins[j],allCoins[i])==0)
@@ -587,15 +591,16 @@ boolean connectToWiFi()
     display.display();
     delay(5000);
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    server.on("/", HTTP_GET, []()
       {
-      request->send_P(200, "text/html", buildSettingsPage());
+      server.send_P(200, "text/html", buildSettingsPage());
       });
-    server.on("/set", HTTP_POST, [](AsyncWebServerRequest *request)
+    server.on("/set", HTTP_POST, []()
       {
       Serial.println("Processing POST");
-      processSettings(request);
-      request->redirect("/");
+      processSettings();
+      server.sendHeader("Location", String("/"), true);
+      server.send (302, "text/plain", "");
       });
   
     server.begin();
