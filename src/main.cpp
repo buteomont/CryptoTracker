@@ -314,8 +314,8 @@ void setup()
 
   //reset the wifi
   WiFi.disconnect(true); 
-//  WiFi.softAPdisconnect(true);
-//  ESP.eraseConfig();
+  WiFi.softAPdisconnect(true);
+  ESP.eraseConfig();
 
   size_t settingsSize=sizeof(settings);
   EEPROM.begin(settingsSize+settingsSize%4); //must be on a 4-byte boundary
@@ -523,15 +523,19 @@ boolean connectToWiFi()
       }
 
     //notifiy the user
+    char connmsg[120]="";
+    strcat(connmsg,settings.ssid);
+    strcat(connmsg,"...");
     display.clear();
-    display.draw_string(0,10,"Connecting to wifi...");
+    display.draw_string(0,10,"Connecting to ");
+    display.draw_string(0,20,connmsg);
     display.display();
 
     WiFi.mode(WIFI_STA); //station mode, we are only a client in the wifi world
     WiFi.begin(settings.ssid, settings.wifiPassword);
 
     //try for 5 seconds to connect to existing wifi
-    for (int i=0;i<25;i++)  
+    for (int i=0;i<100;i++)  
       {
       if (WiFi.status() == WL_CONNECTED)
         break;  // got it
@@ -541,7 +545,7 @@ boolean connectToWiFi()
       ESP.wdtFeed(); //feed the watchdog timers.
       delay(500);
       }
-    char addr[16];  //used to display address on OLED
+    char addr[18];  //used to display address on OLED
 
     if (WiFi.status() == WL_CONNECTED)
       {
