@@ -597,7 +597,7 @@ boolean connectToWiFi()
 
     server.on("/", HTTP_GET, []()
       {
-      server.send_P(200, "text/html", buildSettingsPage());
+      server.send(200, "text/html", buildSettingsPage());
       });
     server.on("/set", HTTP_POST, []()
       {
