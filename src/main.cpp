@@ -361,7 +361,19 @@ void loop()
       scrollCrypto(); //show this one
 
       nextScroll=millis()+settings.scrollDelay*1000;
-      previous[displayIndex]=prices[displayIndex];
+      
+      static int aveCount=0;//keep a pseudo-running average of prices. Reset every 100 reads
+      
+      if (aveCount<100 && previous[displayIndex]>0) //is zero on startup
+        {
+        previous[displayIndex]=(previous[displayIndex]+prices[displayIndex])/2; //pseudo-running average
+        aveCount++;
+        }
+      else
+        {
+        previous[displayIndex]=prices[displayIndex]; //reset average
+        aveCount=0;
+        }
       if (settings.myCoinsIndex>0 && displayIndex<settings.myCoinsIndex)
         {
         float price=fetchPrice(settings.myCoins[displayIndex]); //update this coin price
@@ -511,8 +523,9 @@ char* buildSettingsPage()
  */
 boolean connectToWiFi()
   {
-  yield();
+  static boolean wasConnected=false;
   static boolean retval=true; //assume connection to wifi is ok
+
   if (WiFi.status() != WL_CONNECTED)
     {
     if (settings.debug)
@@ -534,8 +547,10 @@ boolean connectToWiFi()
     WiFi.mode(WIFI_STA); //station mode, we are only a client in the wifi world
     WiFi.begin(settings.ssid, settings.wifiPassword);
 
-    //try for 5 seconds to connect to existing wifi
-    for (int i=0;i<100;i++)  
+    //If we were not previously connected, then
+    //try for 60 seconds to connect to existing wifi.
+    //If we were previously connected, keep trying.
+    for (int i=0;i<120||wasConnected;i++)  
       {
       if (WiFi.status() == WL_CONNECTED)
         break;  // got it
@@ -544,11 +559,13 @@ boolean connectToWiFi()
       checkForCommand(); // Check for input in case something needs to be changed to work
       ESP.wdtFeed(); //feed the watchdog timers.
       delay(500);
+      yield(); //not sure this is necessary here
       }
     char addr[18];  //used to display address on OLED
 
     if (WiFi.status() == WL_CONNECTED)
       {
+      wasConnected=true; //We will only go into AP mode if rebooted
       if (settings.debug)
         {
         Serial.println(F("Connected to network."));
@@ -636,7 +653,8 @@ void showSettings()
   Serial.print("debug=<print debug messages to serial port> (");
   Serial.print(settings.debug?"true":"false");
   Serial.println(")");
-  Serial.println("\n*** Use \"factorydefaults=yes\" to reset all settings ***\n");
+  Serial.println("\n*** Use \"factorydefaults=yes\" to reset all settings ***");
+  Serial.println("*** Use \"reset=yes\" to reboot the device ***\n");
   }
 
 /*

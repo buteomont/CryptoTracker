@@ -11,6 +11,7 @@
 
 #define CRYPTO_HOST "api.coinbase.com"
 #define CRYPTO_URL "/v2/prices/{crypto}-USD/{priceType}"
+#define ALL_CURRENCIES "/v2/exchange-rates"
 #define COINBASE_JSON_SIZE 500
 #define PRICE_BUF_LENGTH 100
 
