@@ -11,9 +11,11 @@
 
 #define CRYPTO_HOST "api.coinbase.com"
 #define CRYPTO_URL "/v2/prices/{crypto}-USD/{priceType}"
-#define ALL_CURRENCIES "/v2/exchange-rates"
+#define ALL_CRYPTO_HOST "api.exchange.coinbase.com"
+#define ALL_CRYPTO_URL "/currencies"
 #define COINBASE_JSON_SIZE 500
 #define PRICE_BUF_LENGTH 100
+#define COINS_BUF_LENGTH 3500
 
 #define MAX_HEADER_TIME 5000 //milliseconds to wait for server response
 
